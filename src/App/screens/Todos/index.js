@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
-
+import { Link } from 'react-router'
 import * as actions from 'App/stores/resources/actions'
 import { getEntities } from 'App/stores/resources'
 
@@ -16,31 +16,45 @@ class Todos extends React.Component {
     };
   }
   componentWillReceiveProps(nextProps) {
-    switch (this.state.status) {
-      case 'All':
+    const updateFilteredTodos = {
+      All: () => {
         this.setState({
           filteredTodos: nextProps.todos
         });
-        break;
-      case 'Active':
+      },
+      Active: () => {
         this.setState({
           filteredTodos: nextProps.todos.filter(todo => !todo.completed)
         });
-        break;
-      case 'Completed':
+      },
+      Completed: () => {
         this.setState({
           filteredTodos: nextProps.todos.filter(todo => todo.completed)
         });
-        break;
-    }
+      }
+    };
+    updateFilteredTodos[this.state.status]();
   }
   render() {
-    const { todos, addTodo, toggleTodo } = this.props;
-    const { filteredTodos } = this.state;
+    const { todos, addTodo, toggleTodo, lists } = this.props;
+    const listID = this.props.params.listID;
+    const list = lists.find(list => list.id === listID);
+    const listName = list ? list.name : '';
+    const filteredTodos = this.state.filteredTodos
+      .filter(todo => todo.listID === listID);
     return (
       <section className='pa3 pa5-ns'>
+        <div className="tc">
+          <Link to="/" className="f5 no-underline black bg-animate hover-bg-black hover-white inline-flex items-center br2 pa1 ba border-box mb2 ml4">
+            <svg className="w1" viewBox="0 0 32 32" style={{ fill: 'currentcolor'}}>
+              <title>chevronLeft icon</title>
+              <path d="M20 1 L24 5 L14 16 L24 27 L20 31 L6 16 z" />
+            </svg>
+            <span className="pl1">Back</span>
+          </Link>
+        </div>
         <AddTodo onSubmit={({todo}, _, {reset}) => {
-          addTodo(todo);
+          addTodo(todo, listID);
           reset()
         }} />
         <div className="tc">
@@ -75,7 +89,11 @@ class Todos extends React.Component {
             className="f6 link dim ba ph3 pv2 mb2 dib black"
           >Completed</a>
         </div>
-        <h1 className='f4 bold center mw6'>{this.state.status} Todos</h1>
+        <h1 className='f4 bold center mw6'>
+          {this.state.status}{' '}
+          Todos{' '}
+          [List: {listName}]
+        </h1>
 
         <TodoList {...{ todos: filteredTodos, toggleTodo }} />
       </section>
@@ -89,10 +107,11 @@ Todos.propTypes = {
 
 export default connect(
   state => ({
-    todos: getEntities('todos')(state)
+    todos: getEntities('todos')(state),
+    lists: getEntities('lists')(state)
   }),
   dispatch => ({
-    addTodo: (text) => dispatch(actions.submitEntity({ text }, {type: 'todos'})),
+    addTodo: (text, listID) => dispatch(actions.submitEntity({ text, listID }, {type: 'todos'})),
     toggleTodo: (todo, completed) => dispatch(actions.updateEntity({ ...todo, completed }, {type: 'todos'}))
   })
 )(Todos)
