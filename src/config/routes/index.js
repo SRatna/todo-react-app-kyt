@@ -7,16 +7,17 @@ import React from 'react'
 import { IndexRoute, Route } from 'react-router'
 
 import App from 'App'
+// import Todos from 'App/screens/Todos'
 // Webpack 2 supports ES2015 `System.import` by auto-
 // chunking assets. Check out the following for more:
 // https://gist.github.com/sokra/27b24881210b56bbaff7#code-splitting-with-es6
 
 const Home = (nextState, cb) => {
-  System.import('App/screens/Home')
+  System.import('App/screens/Lists')
     .then(module => cb(null, module.default))
     .catch((e) => { throw e })
 };
-
+//
 const Todos = (nextState, cb) => {
   System.import('App/screens/Todos')
     .then(module => cb(null, module.default))
@@ -28,7 +29,7 @@ const Todos = (nextState, cb) => {
 const routes = (
   <Route path='/' component={App}>
     <IndexRoute getComponent={Home} />
-    <Route path='todos' getComponent={Todos} />
+    <Route path='todos/:listID' getComponent={Todos} />
   </Route>
 );
 
@@ -36,7 +37,8 @@ const routes = (
 // routes so we need to require them here as a workaround.
 // https://github.com/gaearon/react-hot-loader/issues/288
 if (module.hot) {
-  require('App/screens/Todos')
+  require('App/screens/Lists');
+  require('App/screens/Todos');
 }
 
 export default routes
